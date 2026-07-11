@@ -1,7 +1,4 @@
- 
-import { PrismaClient } from "@prisma/client";
-
-const db = new PrismaClient();
+import { db } from "../src/lib/db";
 
 // Stable public sample PDFs used for the demo library (all verified working)
 const SAMPLE_PDFS = [

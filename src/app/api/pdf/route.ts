@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+export const maxDuration = 60; // Vercel: allow up to 60s for large PDFs
+export const dynamic = "force-dynamic";
+
 // Server-side PDF proxy: fetches a remote PDF and streams it back with CORS
 // headers so pdf.js can render it in the browser without CORS errors.
 export async function GET(req: NextRequest) {

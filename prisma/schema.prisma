@@ -1,6 +1,8 @@
 // BOOKS AND NOTES CG BOARD - Prisma schema
+// Deploy target: Vercel + Turso (cloud SQLite-compatible via libSQL)
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
