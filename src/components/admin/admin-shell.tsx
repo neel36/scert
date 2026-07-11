@@ -79,6 +79,18 @@ export function AdminShell({ onLogout }: { onLogout: () => void }) {
 
   const current = NAV.find((n) => n.id === section) ?? NAV[0];
 
+  // Return to the user app by clearing the secret #admin hash.
+  function goToApp() {
+    if (typeof window !== "undefined") {
+      window.history.pushState(
+        "",
+        document.title,
+        window.location.pathname + window.location.search
+      );
+    }
+    setMode("app");
+  }
+
   async function handleLogout() {
     setLoggingOut(true);
     try {
@@ -131,7 +143,7 @@ export function AdminShell({ onLogout }: { onLogout: () => void }) {
             variant="outline"
             size="sm"
             className="w-full justify-start"
-            onClick={() => setMode("app")}
+            onClick={goToApp}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
             यूज़र ऐप देखें
@@ -163,7 +175,7 @@ export function AdminShell({ onLogout }: { onLogout: () => void }) {
             <span className="text-sm font-semibold">Admin</span>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" onClick={() => setMode("app")}>
+            <Button variant="outline" size="sm" onClick={goToApp}>
               <ExternalLink className="mr-1 h-3.5 w-3.5" /> ऐप
             </Button>
             <Button
