@@ -109,9 +109,11 @@ export function AdminShell({ onLogout }: { onLogout: () => void }) {
       {/* Sidebar - desktop */}
       <aside className="hidden w-64 shrink-0 border-r bg-background lg:flex lg:flex-col">
         <div className="flex items-center gap-2 border-b px-4 py-4">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-            CG
-          </div>
+          <img
+            src="/app-icon.png"
+            alt="CG Board"
+            className="h-9 w-9 rounded-lg object-cover ring-1 ring-border"
+          />
           <div className="leading-tight">
             <p className="text-sm font-semibold">Admin Panel</p>
             <p className="text-[11px] text-muted-foreground">Content Management</p>
@@ -169,9 +171,11 @@ export function AdminShell({ onLogout }: { onLogout: () => void }) {
       <div className="border-b bg-background lg:hidden">
         <div className="flex items-center justify-between gap-2 px-3 py-2.5">
           <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-              CG
-            </div>
+            <img
+              src="/app-icon.png"
+              alt="CG Board"
+              className="h-8 w-8 rounded-md object-cover ring-1 ring-border"
+            />
             <span className="text-sm font-semibold">Admin</span>
           </div>
           <div className="flex items-center gap-1">

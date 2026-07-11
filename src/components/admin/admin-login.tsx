@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { adminLogin } from "@/lib/api";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, Lock } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 
 export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = React.useState("");
@@ -40,9 +40,11 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
     <div className="grid min-h-[70vh] place-items-center p-4">
       <Card className="w-full max-w-md overflow-hidden border-none shadow-xl">
         <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 px-6 py-8 text-center text-primary-foreground">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-white/15 backdrop-blur">
-            <ShieldCheck className="h-7 w-7" />
-          </div>
+          <img
+            src="/app-icon.png"
+            alt="CG Board"
+            className="mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-lg ring-2 ring-white/40"
+          />
           <h1 className="text-xl font-bold tracking-tight">
             BOOKS AND NOTES CG BOARD
           </h1>
