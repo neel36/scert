@@ -199,7 +199,7 @@ export function BooksManager() {
     }
   }
 
-  const canAdd = subjectId !== "all" && subjects.length > 0;
+  const canAdd = mediums.length > 0;
 
   return (
     <div className="space-y-6">
@@ -320,9 +320,9 @@ export function BooksManager() {
                 </Select>
               </div>
             </div>
-            {!canAdd && (
+            {mediums.length === 0 && (
               <p className="mt-3 text-xs text-muted-foreground">
-                नई बुक जोड़ने के लिए किसी विषय को चुनें।
+                नई बुक जोड़ने के लिए पहले माध्यम, कक्षा और विषय जोड़ें।
               </p>
             )}
           </CardContent>

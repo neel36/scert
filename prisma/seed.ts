@@ -21,6 +21,8 @@ function pick<T>(arr: T[], i: number): T {
 
 async function main() {
   console.log("Seeding...");
+  console.log("seed.ts DATABASE_URL:", process.env.DATABASE_URL);
+  console.log("seed.ts DATABASE_AUTH_TOKEN length:", process.env.DATABASE_AUTH_TOKEN?.length);
 
   // ---------- App settings ----------
   const settings = [

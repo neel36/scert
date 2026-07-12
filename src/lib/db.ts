@@ -26,16 +26,11 @@ function createPrismaClient(): PrismaClient {
 
   // Turso / libSQL (Vercel production) — use the libSQL driver adapter.
   const authToken = process.env.DATABASE_AUTH_TOKEN;
-  const libsqlClient =
-    globalForPrisma.libsqlClient ??
-    createClient({
-      url,
-      authToken: authToken || undefined,
-    });
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.libsqlClient = libsqlClient;
-  }
-  const adapter = new PrismaLibSql(libsqlClient);
+  console.log("createPrismaClient called. URL:", url, "AuthToken length:", authToken?.length);
+  const adapter = new PrismaLibSql({
+    url,
+    authToken: authToken || undefined,
+  });
   return new PrismaClient({ adapter });
 }
 

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 
 interface NoInternetPopupProps {
   onRetry: () => void;
+  onOfflineRead?: () => void;
 }
 
-export function NoInternetPopup({ onRetry }: NoInternetPopupProps) {
+export function NoInternetPopup({ onRetry, onOfflineRead }: NoInternetPopupProps) {
   return (
     <div className="absolute inset-0 z-[95] flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
       <motion.div
@@ -36,6 +37,11 @@ export function NoInternetPopup({ onRetry }: NoInternetPopupProps) {
           <Button onClick={onRetry} className="gap-2">
             <RefreshCw className="h-4 w-4" /> पुनः प्रयास करें
           </Button>
+          {onOfflineRead && (
+            <Button onClick={onOfflineRead} variant="outline" className="gap-2">
+              ऑफ़लाइन पढ़ें (Go Offline)
+            </Button>
+          )}
           <p className="text-center text-xs text-muted-foreground">
             एक बार किताबें डाउनलोड होने के बाद आप उन्हें ऑफलाइन पढ़ सकते हैं।
           </p>

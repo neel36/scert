@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Bell, RefreshCw, Loader2 } from "lucide-react";
 import { useAppStore } from "@/stores/app-store";
+import { useLibraryStore } from "@/stores/library-store";
 import { useAppData } from "@/hooks/use-app-data";
 import { SplashScreen } from "./splash-screen";
 import { NoInternetPopup } from "./no-internet-popup";
@@ -15,6 +16,7 @@ import { BookmarksScreen } from "./bookmarks-screen";
 import { DownloadsScreen } from "./downloads-screen";
 import { SettingsScreen } from "./settings-screen";
 import { ExitDialog } from "./exit-dialog";
+import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 
 // PDF reader is heavy + uses browser APIs; load it only when needed.
@@ -44,6 +46,10 @@ export function UserApp() {
     readerBook,
   } = useAppStore();
 
+  const [bypassOffline, setBypassOffline] = useState(false);
+  const downloads = useLibraryStore((s) => s.downloads);
+  const hasDownloads = downloads.length > 0;
+
   // Internet connectivity gate (required to OPEN the app)
   useEffect(() => {
     if (typeof navigator === "undefined") return;
@@ -60,25 +66,61 @@ export function UserApp() {
 
   const appName = config?.settings?.app_name || "BOOKS AND NOTES CG BOARD";
   const requireInternet = config?.settings?.require_internet !== "false";
+  const primaryColor = config?.settings?.primary_color || "#059669";
+
+  const handleOfflineBypass = () => {
+    setBypassOffline(true);
+    setScreen("library");
+  };
+
+  // Mock config for offline settings screen fallback
+  const mockConfig = {
+    settings: {
+      app_name: appName,
+      version: config?.settings?.version || "1.0.0",
+    },
+    splashSlides: [],
+    sidebar: [],
+    bottomNav: [],
+    adConfig: null,
+    notificationConfig: null,
+  } as any;
+
+  const bottomNavItems = config?.bottomNav || [
+    { id: "home", label: "होम", icon: "Home", screen: "home", active: true, order: 0 },
+    { id: "library", label: "लाइब्रेरी", icon: "Library", screen: "library", active: true, order: 1 },
+    { id: "bookmarks", label: "बुकमार्क", icon: "Bookmark", screen: "bookmarks", active: true, order: 2 },
+    { id: "settings", label: "सेटिंग्स", icon: "Settings", screen: "settings", active: true, order: 3 },
+  ];
 
   // ---- No internet gate (before app opens) ----
-  if (requireInternet && !online && !content) {
-    return <PhoneFrame><NoInternetPopup onRetry={() => {
-      if (typeof navigator !== "undefined") setOnline(navigator.onLine);
-      reload();
-    }} /></PhoneFrame>;
-  }
-  // Data failed to load
-  if (error && !content) {
+  if (requireInternet && !online && !content && !bypassOffline) {
     return (
       <PhoneFrame>
-        <NoInternetPopup onRetry={reload} />
+        <NoInternetPopup
+          onRetry={() => {
+            if (typeof navigator !== "undefined") setOnline(navigator.onLine);
+            reload();
+          }}
+          onOfflineRead={hasDownloads ? handleOfflineBypass : undefined}
+        />
+      </PhoneFrame>
+    );
+  }
+  // Data failed to load
+  if (error && !content && !bypassOffline) {
+    return (
+      <PhoneFrame>
+        <NoInternetPopup
+          onRetry={reload}
+          onOfflineRead={hasDownloads ? handleOfflineBypass : undefined}
+        />
       </PhoneFrame>
     );
   }
 
   // ---- Splash screen (first open) ----
-  if (!splashDone) {
+  if (!splashDone && !bypassOffline) {
     if (loading || !config) {
       return (
         <PhoneFrame>
@@ -102,6 +144,13 @@ export function UserApp() {
   // ---- Main app ----
   return (
     <PhoneFrame>
+      {/* Inject Dynamic Primary Color Theme Customization */}
+      <style>{`
+        :root {
+          --primary: ${primaryColor} !important;
+        }
+      `}</style>
+
       <AppSidebar items={config?.sidebar ?? []} appName={appName} />
 
       {/* Top bar */}
@@ -152,7 +201,7 @@ export function UserApp() {
       </AnimatePresence>
 
       {/* Content area */}
-      <main className="relative flex-1 overflow-y-auto px-3 py-3">
+      <main className="relative flex-1 overflow-y-auto px-3 py-3 font-sans">
         <AnimatePresence mode="wait">
           <motion.div
             key={screen}
@@ -162,16 +211,22 @@ export function UserApp() {
             transition={{ duration: 0.2 }}
           >
             {screen === "home" && content && <HomeScreen content={content} />}
+            {screen === "home" && !content && (
+              <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                <p className="text-sm text-muted-foreground">होम स्क्रीन केवल ऑनलाइन उपलब्ध है।</p>
+                <Button size="sm" onClick={() => setScreen("library")}>माई लाइब्रेरी खोलें</Button>
+              </div>
+            )}
             {screen === "library" && <MyLibrary />}
             {screen === "bookmarks" && <BookmarksScreen />}
             {screen === "downloads" && <DownloadsScreen />}
-            {screen === "settings" && config && <SettingsScreen config={config} />}
+            {screen === "settings" && <SettingsScreen config={config || mockConfig} />}
           </motion.div>
         </AnimatePresence>
       </main>
 
       {/* Bottom nav */}
-      {config?.bottomNav && <BottomNav items={config.bottomNav} />}
+      <BottomNav items={bottomNavItems} />
 
       {/* Reader overlay */}
       <AnimatePresence>

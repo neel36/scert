@@ -14,34 +14,36 @@
 
 ## Step 1: Turso Database बनाएं (5 मिनट)
 
-### 1.1 Turso CLI install करें (local machine पर)
+Turso CLI विंडोज़ पर सीधे काम नहीं करता है (यह WSL/Linux के लिए है)। इसलिए विंडोज़ यूज़र्स के लिए **Turso Web UI (बिना कुछ इंस्टॉल किए)** सबसे आसान तरीका है:
 
-**Mac/Linux:**
+### 1.1 Web UI (विंडोज़ के लिए सबसे आसान)
+1. **https://turso.tech** पर जाएं और **Sign Up / Login** (GitHub से) करें।
+2. लॉगिन करने के बाद **"Create Database"** बटन पर क्लिक करें।
+3. डेटाबेस का नाम रखें: `cg-board` और लोकेशन (जैसे `sin` या `bom` - भारत के करीब) चुनकर **Create Database** करें।
+4. डेटाबेस बनने के बाद आपको ये दो चीज़ें मिलेंगी:
+   - **Database URL (Connection String):** (उदा: `libsql://cg-board-username.turso.io`)
+   - **Auth Token:** ऊपर दाएँ कोने में **"Generate Token"** पर क्लिक करें और टोकन कॉपी कर लें।
+5. इन दोनों को नोट कर लें, ये Vercel और Local `.env` फ़ाइल में काम आएंगे।
+
+---
+
+### 1.2 (वैकल्पिक) CLI विधि (Mac/Linux या Windows WSL के लिए)
+अगर आप Mac/Linux पर हैं, या Windows पर WSL (Ubuntu) का उपयोग कर रहे हैं:
+
+**Install & Login:**
 ```bash
+# Install
 curl -sSfL https://get.tur.so/install.sh | bash
-```
 
-**Windows (PowerShell):**
-```powershell
-irm https://get.tur.so/install.ps1 | iex
-```
-
-### 1.2 Login + Database बनाएं
-
-```bash
-# Turso पर login (browser खुलेगा)
+# Login
 turso auth login
 
-# नया database बनाएं
+# Create DB & Get URL
 turso db create cg-board
-
-# Database URL निकालें (इसे नोट कर लें)
 turso db show cg-board --url
-# उदा: libsql://cg-board-yourname.turso.io
 
-# Auth token बनाएं (इसे भी नोट कर लें, सुरक्षित रखें)
+# Generate Token
 turso db tokens create cg-board
-# उदा: eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...
 ```
 
 ### 1.3 Schema database में push करें

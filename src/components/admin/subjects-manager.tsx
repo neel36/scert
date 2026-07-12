@@ -166,7 +166,7 @@ export function SubjectsManager() {
     }
   }
 
-  const canAdd = classId !== "all" && classes.length > 0;
+  const canAdd = mediums.length > 0;
 
   return (
     <div className="space-y-6">
@@ -348,8 +348,9 @@ export function SubjectsManager() {
         open={open}
         onOpenChange={setOpen}
         editing={editing}
-        classes={classes}
-        defaultClassId={classId !== "all" ? classId : classes[0]?.id ?? ""}
+        mediums={mediums}
+        defaultMediumId={mediumId !== "all" ? mediumId : ""}
+        defaultClassId={classId !== "all" ? classId : ""}
         onSave={handleSave}
         saving={saving}
       />
@@ -370,7 +371,8 @@ function SubjectDialog({
   open,
   onOpenChange,
   editing,
-  classes,
+  mediums,
+  defaultMediumId,
   defaultClassId,
   onSave,
   saving,
@@ -378,7 +380,8 @@ function SubjectDialog({
   open: boolean;
   onOpenChange: (o: boolean) => void;
   editing: SubjectRow | null;
-  classes: ClassLevel[];
+  mediums: Medium[];
+  defaultMediumId: string;
   defaultClassId: string;
   onSave: (data: Record<string, unknown>) => void;
   saving: boolean;
@@ -387,7 +390,11 @@ function SubjectDialog({
   const [icon, setIcon] = React.useState("");
   const [order, setOrder] = React.useState(0);
   const [active, setActive] = React.useState(true);
-  const [classId, setClassId] = React.useState("");
+
+  const [dMediumId, setDMediumId] = React.useState("");
+  const [dClassId, setDClassId] = React.useState("");
+  const [dClasses, setDClasses] = React.useState<ClassLevel[]>([]);
+  const [cascading, setCascading] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -395,16 +402,39 @@ function SubjectDialog({
       setIcon(editing?.icon ?? "");
       setOrder(editing?.order ?? 0);
       setActive(editing?.active ?? true);
-      setClassId(editing?.classId ?? defaultClassId);
+
+      if (editing) {
+        setDMediumId(editing.class?.mediumId ?? "");
+        setDClassId(editing.classId ?? "");
+      } else {
+        setDMediumId(defaultMediumId);
+        setDClassId(defaultClassId);
+      }
     }
-  }, [open, editing, defaultClassId]);
+  }, [open, editing, defaultMediumId, defaultClassId]);
+
+  // When dMediumId changes -> load classes
+  React.useEffect(() => {
+    if (!open) return;
+    if (!dMediumId) {
+      setDClasses([]);
+      return;
+    }
+    setCascading(true);
+    adminRequest<{ classes: ClassLevel[] }>(
+      `/api/admin/classes?mediumId=${dMediumId}`
+    )
+      .then((r) => setDClasses(r.classes))
+      .catch(() => setDClasses([]))
+      .finally(() => setCascading(false));
+  }, [dMediumId, open]);
 
   function submit() {
     if (!name.trim()) {
       toast.error("नाम आवश्यक है");
       return;
     }
-    if (!classId) {
+    if (!dClassId) {
       toast.error("कक्षा चुनें");
       return;
     }
@@ -413,7 +443,7 @@ function SubjectDialog({
       icon,
       order: Number(order),
       active,
-      classId,
+      classId: dClassId,
     });
   }
 
@@ -426,13 +456,51 @@ function SubjectDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <Field label="कक्षा" required>
-            <Select value={classId} onValueChange={setClassId}>
+          <Field label="माध्यम" required>
+            <Select
+              value={dMediumId || "__none__"}
+              onValueChange={(v) => {
+                if (v !== "__none__") {
+                  setDMediumId(v);
+                  setDClassId("");
+                }
+              }}
+            >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="कक्षा चुनें" />
+                <SelectValue placeholder="माध्यम चुनें" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((c) => (
+                <SelectItem value="__none__" disabled>
+                  चुनें…
+                </SelectItem>
+                {mediums.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.icon ? `${m.icon} ` : ""}
+                    {m.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field label="कक्षा" required>
+            <Select
+              value={dClassId || "__none__"}
+              onValueChange={(v) => v !== "__none__" && setDClassId(v)}
+              disabled={!dMediumId || cascading}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    !dMediumId ? "पहले माध्यम चुनें" : "कक्षा चुनें"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__" disabled>
+                  चुनें…
+                </SelectItem>
+                {dClasses.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.icon ? `${c.icon} ` : ""}
                     {c.name}
@@ -441,6 +509,7 @@ function SubjectDialog({
               </SelectContent>
             </Select>
           </Field>
+
           <Field label="नाम" required>
             <Input
               value={name}
@@ -470,11 +539,11 @@ function SubjectDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={saving}
+            disabled={saving || cascading}
           >
             रद्द करें
           </Button>
-          <Button onClick={submit} disabled={saving}>
+          <Button onClick={submit} disabled={saving || cascading}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             सेव करें
           </Button>

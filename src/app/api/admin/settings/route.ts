@@ -17,7 +17,10 @@ export async function PUT(req: NextRequest) {
   // Special handling for password change
   if (body.admin_password !== undefined) {
     const current = await getSetting("admin_password", "admin123");
-    if (body.admin_password !== current && body.current_password && body.current_password !== current) {
+    if (!body.current_password) {
+      return NextResponse.json({ error: "वर्तमान पासवर्ड आवश्यक है" }, { status: 400 });
+    }
+    if (body.current_password !== current) {
       return NextResponse.json({ error: "वर्तमान पासवर्ड गलत है" }, { status: 400 });
     }
     if (!body.admin_password) {
