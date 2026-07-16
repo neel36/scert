@@ -1,12 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { createClient, type Client } from "@libsql/client";
 
 // Cache the client across hot-reloads in dev and reuse across serverless
 // invocations in production.
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
-  libsqlClient: Client | undefined;
 };
 
 function createPrismaClient(): PrismaClient {
@@ -17,22 +15,25 @@ function createPrismaClient(): PrismaClient {
     );
   }
 
+  const log = process.env.NODE_ENV === "production" ? ["error"] : ["query", "error"];
+
   // Local SQLite file (dev) — no adapter needed, use the default Prisma engine.
   if (url.startsWith("file:")) {
-    return new PrismaClient({
-      log: process.env.NODE_ENV === "production" ? ["error"] : ["query", "error"],
-    });
+    return new PrismaClient({ log });
   }
 
   // Turso / libSQL (Vercel production) — use the libSQL driver adapter.
   const authToken = process.env.DATABASE_AUTH_TOKEN;
-  console.log("createPrismaClient called. URL:", url, "AuthToken length:", authToken?.length);
-  const libsqlClient = createClient({
-    url,
-    authToken: authToken || undefined,
-  });
-  const adapter = new PrismaLibSql(libsqlClient);
-  return new PrismaClient({ adapter });
+  if (!authToken) {
+    throw new Error(
+      "DATABASE_AUTH_TOKEN is not set. Set this env var when DATABASE_URL starts with libsql://, e.g. in Vercel Settings or .env.local."
+    );
+  }
+
+  console.log("createPrismaClient called. URL:", url, "AuthToken length:", authToken.length);
+
+  const adapter = new PrismaLibSql({ url, authToken });
+  return new PrismaClient({ adapter, log });
 }
 
 export const db = globalForPrisma.prisma ?? createPrismaClient();
