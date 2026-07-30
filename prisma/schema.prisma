@@ -1,13 +1,13 @@
 // BOOKS AND NOTES CG BOARD - Prisma schema
-// Deploy target: Vercel + Turso (cloud SQLite-compatible via libSQL)
+// Deploy target: Vercel + Supabase (PostgreSQL)
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------- Content hierarchy ----------
