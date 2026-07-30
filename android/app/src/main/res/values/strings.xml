@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BOOKS AND NOTES CG BOARD</string>
+    <string name="title_activity_main">BOOKS AND NOTES CG BOARD</string>
+    <string name="package_name">com.cgboard.scert</string>
+    <string name="custom_url_scheme">com.cgboard.scert</string>
+</resources>
