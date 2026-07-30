@@ -75,10 +75,6 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
               लॉगिन करें
             </Button>
           </form>
-          <p className="text-center text-xs text-muted-foreground">
-            डिफ़ॉल्ट पासवर्ड:{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono">admin123</code>
-          </p>
         </CardContent>
       </Card>
     </div>
