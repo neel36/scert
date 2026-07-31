@@ -39,14 +39,17 @@ export function ExitDialog({ open, onOpenChange }: ExitDialogProps) {
             variant="destructive"
             className="flex-1 gap-1.5"
             onClick={async () => {
-              onOpenChange(false);
               try {
                 await CapacitorApp.exitApp();
               } catch (e) {
-                // CapacitorApp.exitApp is only available in native mobile environment.
-                // On web browsers, simply close the dialog without replacing body HTML.
-                console.log("exitApp is not available on web browser");
+                console.log("CapacitorApp.exitApp failed or not native", e);
               }
+              if (typeof window !== "undefined") {
+                try {
+                  window.close();
+                } catch (e) {}
+              }
+              onOpenChange(false);
             }}
           >
             <LogOut className="h-4 w-4" /> एक्जिट
