@@ -25,6 +25,8 @@ const PdfReader = dynamic(
   { ssr: false }
 );
 
+import { App as CapacitorApp } from "@capacitor/app";
+
 export function UserApp() {
   const {
     config,
@@ -48,13 +50,58 @@ export function UserApp() {
 
   const [bypassOffline, setBypassOffline] = useState(false);
   const downloads = useLibraryStore((s) => s.downloads);
+  const setReaderBook = useLibraryStore((s) => s.setReaderBook);
   const hasDownloads = downloads.length > 0;
 
-  // Internet connectivity gate (required to OPEN the app)
+  // Hardware Back Button handler (Android back button)
+  useEffect(() => {
+    let backListener: any;
+    const setupBackHandler = async () => {
+      try {
+        backListener = await CapacitorApp.addListener("backButton", () => {
+          const state = useAppStore.getState();
+          const libState = useLibraryStore.getState();
+
+          if (libState.readerBook) {
+            libState.setReaderBook(null);
+          } else if (state.sidebarOpen) {
+            state.setSidebarOpen(false);
+          } else if (state.screen === "home") {
+            if (state.selectedSubjectId) {
+              state.selectSubject(null);
+            } else if (state.selectedClassId) {
+              state.selectClass(null);
+            } else if (state.selectedMediumId) {
+              state.selectMedium(null);
+            } else {
+              state.setScreen("exit");
+            }
+          } else if (state.screen !== "home") {
+            state.setScreen("home");
+          } else {
+            state.setScreen("exit");
+          }
+        });
+      } catch (e) {
+        console.log("Capacitor backButton listener not available on web", e);
+      }
+    };
+    setupBackHandler();
+    return () => {
+      if (backListener && typeof backListener.remove === "function") {
+        backListener.remove();
+      }
+    };
+  }, []);
+
+  // Internet connectivity gate
   useEffect(() => {
     if (typeof navigator === "undefined") return;
     setOnline(navigator.onLine);
-    const onOnline = () => setOnline(true);
+    const onOnline = () => {
+      setOnline(true);
+      reload(); // Auto-sync admin panel updates into local offline cache
+    };
     const onOffline = () => setOnline(false);
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
@@ -62,7 +109,7 @@ export function UserApp() {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
     };
-  }, [setOnline]);
+  }, [setOnline, reload]);
 
   const appName = config?.settings?.app_name || "BOOKS AND NOTES CG BOARD";
   const requireInternet = config?.settings?.require_internet !== "false";
@@ -210,12 +257,23 @@ export function UserApp() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
           >
-            {screen === "home" && content && <HomeScreen content={content} />}
-            {screen === "home" && !content && (
-              <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-                <p className="text-sm text-muted-foreground">होम स्क्रीन केवल ऑनलाइन उपलब्ध है।</p>
-                <Button size="sm" onClick={() => setScreen("library")}>माई लाइब्रेरी खोलें</Button>
-              </div>
+            {screen === "home" && (
+              content ? (
+                <HomeScreen content={content} />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 py-16 px-4 text-center">
+                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-950/50 p-4 text-emerald-600">
+                    <RefreshCw className="h-8 w-8 animate-pulse" />
+                  </div>
+                  <h3 className="text-base font-bold">डेटा लोड हो रहा है / ऑफ़लाइन मोड</h3>
+                  <p className="text-xs text-muted-foreground max-w-xs">
+                    सामग्री लोड करने के लिए एक बार इंटरनेट कनेक्ट करें। उसके बाद सभी बुक्स और सब्जेक्ट्स ऑफ़लाइन उपलब्ध रहेंगे।
+                  </p>
+                  <Button size="sm" onClick={reload} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <RefreshCw className="h-3.5 w-3.5" /> रिफ्रेश करें
+                  </Button>
+                </div>
+              )
             )}
             {screen === "library" && <MyLibrary />}
             {screen === "bookmarks" && <BookmarksScreen />}

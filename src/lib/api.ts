@@ -12,12 +12,39 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+import {
+  getCachedAppConfig,
+  setCachedAppConfig,
+  getCachedContent,
+  setCachedContent,
+} from "@/lib/offline-storage";
+
 export async function fetchAppConfig(): Promise<AppConfig> {
-  return json(await fetch("/api/app/config", { cache: "no-store" }));
+  try {
+    const data = await json<AppConfig>(
+      await fetch("/api/app/config", { cache: "no-store" })
+    );
+    setCachedAppConfig(data);
+    return data;
+  } catch (err) {
+    const cached = getCachedAppConfig();
+    if (cached) return cached;
+    throw err;
+  }
 }
 
 export async function fetchContent(): Promise<ContentTree> {
-  return json(await fetch("/api/app/content", { cache: "no-store" }));
+  try {
+    const data = await json<ContentTree>(
+      await fetch("/api/app/content", { cache: "no-store" })
+    );
+    setCachedContent(data);
+    return data;
+  } catch (err) {
+    const cached = getCachedContent();
+    if (cached) return cached;
+    throw err;
+  }
 }
 
 export async function registerDownload(bookId: string): Promise<void> {

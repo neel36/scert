@@ -10,8 +10,6 @@ import {
   Sparkles,
   HardDrive,
   Info,
-  Bell,
-  Megaphone,
   Trash2,
   Palette,
   ChevronRight,
@@ -43,8 +41,6 @@ export function SettingsScreen({ config }: SettingsScreenProps) {
   const removeDownload = useLibraryStore((s) => s.removeDownload);
   const [clearOpen, setClearOpen] = useState(false);
 
-  const adConfig = config.adConfig;
-  const notifConfig = config.notificationConfig;
   const s = config.settings;
 
   const totalSize = downloads.reduce((n, d) => n + (d.fileSize || 0), 0);
@@ -166,40 +162,7 @@ export function SettingsScreen({ config }: SettingsScreenProps) {
         </div>
       </Section>
 
-      {/* Notifications */}
-      <Section icon={<Bell className="h-4 w-4" />} title="सूचनाएं">
-        <Row
-          icon={<Bell className="h-4 w-4" />}
-          title="पुश नोटिफिकेशन"
-          desc={notifConfig?.enabled ? "OneSignal द्वारा सक्रिय" : "बंद है"}
-        >
-          <Switch checked={!!notifConfig?.enabled} disabled />
-        </Row>
-      </Section>
 
-      {/* Ads */}
-      <Section icon={<Megaphone className="h-4 w-4" />} title="विज्ञापन">
-        <Row
-          icon={<Megaphone className="h-4 w-4" />}
-          title="विज्ञापन नेटवर्क"
-          desc={
-            adConfig?.enabled
-              ? `${adConfig.network === "admob" ? "Google AdMob" : "Facebook Audience Network"}`
-              : "विज्ञापन बंद हैं"
-          }
-        >
-          <Switch checked={!!adConfig?.enabled} disabled />
-        </Row>
-        {adConfig?.enabled && (
-          <div className="flex flex-wrap gap-1.5 px-1 pb-1">
-            {adConfig.bannerEnabled && <Pill>बैनर</Pill>}
-            {adConfig.interstitialEnabled && <Pill>इंटरस्टिशियल</Pill>}
-            {adConfig.nativeEnabled && <Pill>नेटिव</Pill>}
-            {adConfig.rewardedEnabled && <Pill>रिवॉर्डेड</Pill>}
-            {adConfig.appOpenEnabled && <Pill>ऐप ओपन</Pill>}
-          </div>
-        )}
-      </Section>
 
       {/* About */}
       <Section icon={<Info className="h-4 w-4" />} title="ऐप के बारे में">
